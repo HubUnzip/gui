@@ -1,0 +1,285 @@
+
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local Players = game:GetService("Players")
+
+local Library = {}
+Library.__index = Library
+
+local Theme = {
+    Bg = Color3.fromRGB(5, 2, 10),
+    SectionBg = Color3.fromRGB(10, 5, 20),
+    Purple = Color3.fromRGB(180, 0, 255),
+    White = Color3.fromRGB(255, 255, 255),
+    DimText = Color3.fromRGB(200, 160, 255),
+    Green = Color3.fromRGB(0, 255, 0),
+    Red = Color3.fromRGB(255, 0, 0)
+}
+
+function Library:CreateWindow(titleText)
+    local self = setmetatable({}, Library)
+    
+    local UI = Instance.new("ScreenGui")
+    UI.Name = "SwitchHubLib"
+    UI.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
+    UI.ResetOnSpawn = false
+    self.Gui = UI
+
+    local Main = Instance.new("Frame")
+    Main.Name = "Main"
+    Main.Size = UDim2.new(0, 500, 0, 600)
+    Main.Position = UDim2.new(0.5, -250, 0.5, -300)
+    Main.BackgroundColor3 = Theme.Bg
+    Main.BorderSizePixel = 1
+    Main.BorderColor3 = Theme.Purple
+    Main.Parent = UI
+    self.Main = Main
+
+    local Pattern = Instance.new("ImageLabel")
+    Pattern.Size = UDim2.new(1, 0, 1, 0)
+    Pattern.BackgroundTransparency = 1
+    Pattern.Image = "rbxassetid://215157356"
+    Pattern.ImageColor3 = Theme.Purple
+    Pattern.ImageTransparency = 0.95
+    Pattern.ZIndex = 0
+    Pattern.Parent = Main
+
+    local Header = Instance.new("Frame")
+    Header.Size = UDim2.new(1, 0, 0, 40)
+    Header.BackgroundTransparency = 1
+    Header.Parent = Main
+
+    local Title = Instance.new("TextLabel")
+    Title.Size = UDim2.new(1, -20, 1, 0)
+    Title.Position = UDim2.new(0, 10, 0, 0)
+    Title.BackgroundTransparency = 1
+    Title.RichText = true
+    Title.Text = titleText or "Switch Hub [ <font color='#ffffff'>Series X</font> ]"
+    Title.TextColor3 = Theme.Purple
+    Title.TextSize = 17
+    Title.Font = Enum.Font.SourceSansBold
+    Title.TextXAlignment = Enum.TextXAlignment.Left
+    Title.Parent = Header
+    self.TitleLabel = Title
+
+    local Line = Instance.new("Frame")
+    Line.Size = UDim2.new(1, -20, 0, 1)
+    Line.Position = UDim2.new(0, 10, 1, 0)
+    Line.BackgroundColor3 = Theme.Purple
+    Line.BorderSizePixel = 0
+    Line.Parent = Header
+
+    local Scroll = Instance.new("ScrollingFrame")
+    Scroll.Position = UDim2.new(0, 10, 0, 50)
+    Scroll.Size = UDim2.new(1, -20, 1, -60)
+    Scroll.BackgroundTransparency = 1
+    Scroll.BorderSizePixel = 0
+    Scroll.ScrollBarThickness = 1
+    Scroll.ScrollBarImageColor3 = Theme.Purple
+    Scroll.Parent = Main
+    self.Scroll = Scroll
+
+    local Layout = Instance.new("UIGridLayout")
+    Layout.CellPadding = UDim2.new(0, 10, 0, 15)
+    Layout.CellSize = UDim2.new(0.48, 0, 0, 150)
+    Layout.SortOrder = Enum.SortOrder.LayoutOrder
+    Layout.Parent = Scroll
+    
+    Layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        Scroll.CanvasSize = UDim2.new(0, 0, 0, Layout.AbsoluteContentSize.Y + 20)
+    end)
+
+    -- Draggable
+    local d, i, s, p
+    Main.InputBegan:Connect(function(inp)
+        if inp.UserInputType == Enum.UserInputType.MouseButton1 then d = true s = inp.Position p = Main.Position end
+    end)
+    UserInputService.InputChanged:Connect(function(inp)
+        if d and inp.UserInputType == Enum.UserInputType.MouseMovement then
+            local delta = inp.Position - s
+            Main.Position = UDim2.new(p.X.Scale, p.X.Offset + delta.X, p.Y.Scale, p.Y.Offset + delta.Y)
+        end
+    end)
+    UserInputService.InputEnded:Connect(function(inp)
+        if inp.UserInputType == Enum.UserInputType.MouseButton1 then d = false end
+    end)
+
+    return self
+end
+
+function Library:SetTitle(newTitle)
+    if self.TitleLabel then self.TitleLabel.Text = newTitle end
+end
+
+function Library:CreateSection(name)
+    local Section = {}
+    local Box = Instance.new("Frame")
+    Box.BackgroundColor3 = Theme.SectionBg
+    Box.BackgroundTransparency = 0.5
+    Box.BorderSizePixel = 1
+    Box.BorderColor3 = Color3.fromRGB(50, 0, 80)
+    Box.Parent = self.Scroll
+    
+    local Title = Instance.new("TextLabel")
+    Title.Size = UDim2.new(1, 0, 0, -15)
+    Title.BackgroundTransparency = 1
+    Title.Text = name
+    Title.TextColor3 = Theme.Purple
+    Title.TextSize = 14
+    Title.Font = Enum.Font.RobotoMono
+    Title.Parent = Box
+    
+    local Container = Instance.new("Frame")
+    Container.Size = UDim2.new(1, -10, 1, -10)
+    Container.Position = UDim2.new(0, 5, 0, 5)
+    Container.BackgroundTransparency = 1
+    Container.Parent = Box
+    
+    local List = Instance.new("UIListLayout")
+    List.Padding = UDim.new(0, 3)
+    List.Parent = Container
+    List:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        Box.Size = UDim2.new(0.48, 0, 0, List.AbsoluteContentSize.Y + 15)
+    end)
+
+    function Section:CreateButton(text, callback)
+        local Btn = Instance.new("TextButton")
+        Btn.Size = UDim2.new(1, 0, 0, 22)
+        Btn.BackgroundColor3 = Color3.fromRGB(20, 10, 40)
+        Btn.BorderSizePixel = 1
+        Btn.BorderColor3 = Theme.Purple
+        Btn.Text = " [ " .. text .. " ] "
+        Btn.TextColor3 = Theme.White
+        Btn.Font = Enum.Font.RobotoMono
+        Btn.TextSize = 12
+        Btn.AutoButtonColor = false
+        Btn.Parent = Container
+        Btn.MouseButton1Click:Connect(function()
+            callback()
+            Btn.TextColor3 = Theme.Purple
+            task.wait(0.1)
+            Btn.TextColor3 = Theme.White
+        end)
+    end
+    
+    function Section:CreateToggle(text, default, callback)
+        local Tgl = Instance.new("TextButton")
+        Tgl.Size = UDim2.new(1, 0, 0, 22)
+        Tgl.BackgroundTransparency = 1
+        Tgl.Text = ""
+        Tgl.Parent = Container
+        local State = default or false
+        local Label = Instance.new("TextLabel")
+        Label.Size = UDim2.new(1, 0, 1, 0)
+        Label.BackgroundTransparency = 1
+        Label.RichText = true
+        Label.Font = Enum.Font.RobotoMono
+        Label.TextSize = 12
+        Label.TextXAlignment = Enum.TextXAlignment.Left
+        Label.Parent = Tgl
+        local function update()
+            local icon = State and "<font color='#00ff00'>[ ✓ ]</font>" or "<font color='#ff0000'>[ X ]</font>"
+            Label.Text = icon .. " : " .. text
+            callback(State)
+        end
+        Tgl.MouseButton1Click:Connect(function() State = not State update() end)
+        update()
+    end
+
+    function Section:CreateTextBox(text, placeholder, callback)
+        local TBox = Instance.new("Frame")
+        TBox.Size = UDim2.new(1, 0, 0, 22)
+        TBox.BackgroundColor3 = Color3.fromRGB(20, 10, 40)
+        TBox.BorderSizePixel = 1
+        TBox.BorderColor3 = Theme.Purple
+        TBox.Parent = Container
+
+        local Input = Instance.new("TextBox")
+        Input.Size = UDim2.new(1, -10, 1, 0)
+        Input.Position = UDim2.new(0, 5, 0, 0)
+        Input.BackgroundTransparency = 1
+        Input.PlaceholderText = placeholder or "Type here..."
+        Input.Text = ""
+        Input.TextColor3 = Theme.White
+        Input.PlaceholderColor3 = Theme.DimText
+        Input.Font = Enum.Font.RobotoMono
+        Input.TextSize = 12
+        Input.TextXAlignment = Enum.TextXAlignment.Left
+        Input.Parent = TBox
+
+        Input.FocusLost:Connect(function(enter)
+            callback(Input.Text)
+        end)
+    end
+
+    function Section:CreateDropdown(text, list, callback)
+        local Drop = Instance.new("Frame")
+        Drop.Size = UDim2.new(1, 0, 0, 22)
+        Drop.BackgroundTransparency = 1
+        Drop.Parent = Container
+        local MainBtn = Instance.new("TextButton")
+        MainBtn.Size = UDim2.new(1, 0, 1, 0)
+        MainBtn.BackgroundColor3 = Color3.fromRGB(20, 10, 40)
+        MainBtn.BorderSizePixel = 1
+        MainBtn.BorderColor3 = Theme.Purple
+        MainBtn.Text = " ▼ " .. text .. ": ..."
+        MainBtn.TextColor3 = Theme.DimText
+        MainBtn.Font = Enum.Font.RobotoMono
+        MainBtn.TextSize = 12
+        MainBtn.TextXAlignment = Enum.TextXAlignment.Left
+        MainBtn.Parent = Drop
+        local Content = Instance.new("Frame")
+        Content.Size = UDim2.new(1, 0, 0, 0)
+        Content.Position = UDim2.new(0, 0, 0, 22)
+        Content.BackgroundColor3 = Color3.fromRGB(15, 5, 30)
+        Content.BorderSizePixel = 1
+        Content.BorderColor3 = Theme.Purple
+        Content.Visible = false
+        Content.ClipsDescendants = true
+        Content.ZIndex = 10
+        Content.Parent = Drop
+        local CList = Instance.new("UIListLayout")
+        CList.Parent = Content
+        local opened = false
+        MainBtn.MouseButton1Click:Connect(function()
+            opened = not opened
+            Content.Visible = opened
+            Content.Size = opened and UDim2.new(1, 0, 0, CList.AbsoluteContentSize.Y) or UDim2.new(1, 0, 0, 0)
+            Drop.Size = opened and UDim2.new(1, 0, 0, 22 + CList.AbsoluteContentSize.Y) or UDim2.new(1, 0, 0, 22)
+        end)
+        for _, v in ipairs(list) do
+            local Opt = Instance.new("TextButton")
+            Opt.Size = UDim2.new(1, 0, 0, 20)
+            Opt.BackgroundTransparency = 1
+            Opt.Text = "  > " .. tostring(v)
+            Opt.TextColor3 = Theme.White
+            Opt.Font = Enum.Font.RobotoMono
+            Opt.TextSize = 11
+            Opt.TextXAlignment = Enum.TextXAlignment.Left
+            Opt.Parent = Content
+            Opt.MouseButton1Click:Connect(function()
+                MainBtn.Text = " ▼ " .. text .. ": " .. tostring(v)
+                callback(v)
+                opened = false
+                Content.Visible = false
+                Drop.Size = UDim2.new(1, 0, 0, 22)
+            end)
+        end
+    end
+    
+    function Section:CreateLabel(text)
+        local Lbl = Instance.new("TextLabel")
+        Lbl.Size = UDim2.new(1, 0, 0, 18)
+        Lbl.BackgroundTransparency = 1
+        Lbl.Text = " > " .. text
+        Lbl.TextColor3 = Theme.DimText
+        Lbl.Font = Enum.Font.RobotoMono
+        Lbl.TextSize = 12
+        Lbl.TextXAlignment = Enum.TextXAlignment.Left
+        Lbl.Parent = Container
+    end
+
+    return Section
+end
+
+return Library
