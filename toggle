@@ -1,0 +1,420 @@
+local ToggleGui = nil
+local ToggleMainButton = nil
+
+local function setupToggleGui()
+    local parentGui
+
+    if gethui then
+        parentGui = gethui()
+    else
+        local success, core = pcall(function()
+            return game:GetService("CoreGui")
+        end)
+
+        if success and core then
+            parentGui = core
+        else
+            parentGui = localPlayer:WaitForChild("PlayerGui")
+        end
+    end
+
+    if parentGui:FindFirstChild("MemeSeaToggleGui") then
+        pcall(function()
+            parentGui.MemeSeaToggleGui:Destroy()
+        end)
+    end
+
+    if localPlayer and localPlayer:FindFirstChild("PlayerGui") and localPlayer.PlayerGui:FindFirstChild("MemeSeaToggleGui") then
+        pcall(function()
+            localPlayer.PlayerGui.MemeSeaToggleGui:Destroy()
+        end)
+    end
+
+    local toggleScreenGui = Instance.new("ScreenGui")
+    toggleScreenGui.Name = "MemeSeaToggleGui"
+    toggleScreenGui.ResetOnSpawn = false
+    toggleScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    toggleScreenGui.DisplayOrder = 999999
+
+    if syn and syn.protect_gui then
+        pcall(syn.protect_gui, toggleScreenGui)
+        toggleScreenGui.Parent = game:GetService("CoreGui")
+    else
+        toggleScreenGui.Parent = parentGui
+    end
+
+    local mainButton = Instance.new("TextButton")
+    mainButton.Name = "ToggleMainButton"
+    mainButton.Size = UDim2.new(0, 50, 0, 50)
+    mainButton.Position = UDim2.new(0, 18, 0.5, -25)
+    mainButton.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+    mainButton.BackgroundTransparency = 0.1
+    mainButton.BorderSizePixel = 0
+    mainButton.Text = ""
+    mainButton.AutoButtonColor = false
+    mainButton.Active = true
+    mainButton.ClipsDescendants = false
+    mainButton.Parent = toggleScreenGui
+
+    local buttonCorner = Instance.new("UICorner")
+    buttonCorner.CornerRadius = UDim.new(0, 14)
+    buttonCorner.Parent = mainButton
+
+    local buttonStroke = Instance.new("UIStroke")
+    buttonStroke.Color = Color3.fromRGB(65, 65, 80)
+    buttonStroke.Thickness = 1.6
+    buttonStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    buttonStroke.Parent = mainButton
+
+    local buttonGradient = Instance.new("UIGradient")
+    buttonGradient.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(36, 36, 46)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(18, 18, 22))
+    })
+    buttonGradient.Rotation = 45
+    buttonGradient.Parent = mainButton
+
+    local shadow = Instance.new("ImageLabel")
+    shadow.Name = "Shadow"
+    shadow.AnchorPoint = Vector2.new(0.5, 0.5)
+    shadow.Position = UDim2.new(0.5, 0, 0.5, 3)
+    shadow.Size = UDim2.new(1, 16, 1, 16)
+    shadow.BackgroundTransparency = 1
+    shadow.Image = "rbxassetid://5554236805"
+    shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
+    shadow.ImageTransparency = 0.5
+    shadow.ScaleType = Enum.ScaleType.Slice
+    shadow.SliceCenter = Rect.new(23, 23, 277, 277)
+    shadow.ZIndex = mainButton.ZIndex - 1
+    shadow.Parent = mainButton
+
+    local logo = Instance.new("TextLabel")
+    logo.Name = "LogoText"
+    logo.AnchorPoint = Vector2.new(0.5, 0.5)
+    logo.Position = UDim2.new(0.5, 0, 0.5, -1)
+    logo.Size = UDim2.new(1, 0, 1, 0)
+    logo.BackgroundTransparency = 1
+    logo.Text = "U"
+    logo.TextColor3 = Color3.fromRGB(255, 255, 255)
+    logo.TextSize = 25
+    logo.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Heavy)
+    logo.ZIndex = mainButton.ZIndex + 1
+    logo.Parent = mainButton
+
+    local logoGradient = Instance.new("UIGradient")
+    logoGradient.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(200, 225, 255))
+    })
+    logoGradient.Rotation = 90
+    logoGradient.Parent = logo
+
+    local statusDot = Instance.new("Frame")
+    statusDot.Name = "StatusDot"
+    statusDot.Size = UDim2.new(0, 10, 0, 10)
+    statusDot.AnchorPoint = Vector2.new(1, 1)
+    statusDot.Position = UDim2.new(1, -4, 1, -4)
+    statusDot.BackgroundColor3 = Color3.fromRGB(46, 204, 113)
+    statusDot.BorderSizePixel = 0
+    statusDot.ZIndex = mainButton.ZIndex + 2
+    statusDot.Parent = mainButton
+
+    local dotCorner = Instance.new("UICorner")
+    dotCorner.CornerRadius = UDim.new(1, 0)
+    dotCorner.Parent = statusDot
+
+    local dotStroke = Instance.new("UIStroke")
+    dotStroke.Color = Color3.fromRGB(20, 20, 25)
+    dotStroke.Thickness = 1.5
+    dotStroke.Parent = statusDot
+
+    local tooltip = Instance.new("TextLabel")
+    tooltip.Name = "Tooltip"
+    tooltip.Size = UDim2.new(0, 75, 0, 24)
+    tooltip.Position = UDim2.new(1, 8, 0.5, -12)
+    tooltip.BackgroundColor3 = Color3.fromRGB(25, 25, 32)
+    tooltip.BackgroundTransparency = 0.2
+    tooltip.Text = "unziphub"
+    tooltip.TextColor3 = Color3.fromRGB(220, 220, 230)
+    tooltip.TextSize = 12
+    tooltip.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Medium)
+    tooltip.Visible = false
+    tooltip.ZIndex = mainButton.ZIndex + 5
+    tooltip.Parent = mainButton
+
+    local tooltipCorner = Instance.new("UICorner")
+    tooltipCorner.CornerRadius = UDim.new(0, 6)
+    tooltipCorner.Parent = tooltip
+
+    local tooltipStroke = Instance.new("UIStroke")
+    tooltipStroke.Color = Color3.fromRGB(60, 60, 75)
+    tooltipStroke.Thickness = 1
+    tooltipStroke.Parent = tooltip
+
+    local function isMainGuiVisible()
+        if Window and Window.Root then
+            return Window.Root.Visible
+        elseif Window and Window.Minimized ~= nil then
+            return not Window.Minimized
+        elseif Fluent and Fluent.GUI then
+            return Fluent.GUI.Enabled
+        end
+
+        return true
+    end
+
+    local function updateStatusDot()
+        local visible = isMainGuiVisible()
+        local targetColor = visible and Color3.fromRGB(46, 204, 113) or Color3.fromRGB(231, 76, 60)
+
+        TweenService:Create(statusDot, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+            BackgroundColor3 = targetColor
+        }):Play()
+    end
+
+    local function toggleMainGui()
+        if Window then
+            if Window.Root and Window.Minimized ~= nil then
+                Window.Minimized = not Window.Root.Visible
+            end
+
+            if typeof(Window.Minimize) == "function" then
+                local ok = pcall(function()
+                    Window:Minimize()
+                end)
+
+                if ok then
+                    updateStatusDot()
+                    return
+                end
+            end
+
+            if Window.Root then
+                local ok = pcall(function()
+                    Window.Root.Visible = not Window.Root.Visible
+                end)
+
+                if ok then
+                    updateStatusDot()
+                    return
+                end
+            end
+        end
+
+        if Fluent and Fluent.GUI then
+            local ok = pcall(function()
+                Fluent.GUI.Enabled = not Fluent.GUI.Enabled
+            end)
+
+            if ok then
+                updateStatusDot()
+                return
+            end
+        end
+
+        pcall(function()
+            local vim = game:GetService("VirtualInputManager")
+            vim:SendKeyEvent(true, Enum.KeyCode.RightControl, false, game)
+            task.wait(0.05)
+            vim:SendKeyEvent(false, Enum.KeyCode.RightControl, false, game)
+        end)
+
+        updateStatusDot()
+    end
+
+    task.spawn(function()
+        task.wait(0.5)
+
+        if Window and Window.Root then
+            pcall(function()
+                Window.Root:GetPropertyChangedSignal("Visible"):Connect(updateStatusDot)
+            end)
+        end
+
+        updateStatusDot()
+    end)
+
+    mainButton.MouseEnter:Connect(function()
+        TweenService:Create(buttonStroke, TweenInfo.new(0.2), {
+            Color = Color3.fromRGB(0, 170, 255),
+            Thickness = 2
+        }):Play()
+
+        TweenService:Create(mainButton, TweenInfo.new(0.2), {
+            BackgroundColor3 = Color3.fromRGB(30, 30, 38)
+        }):Play()
+
+        TweenService:Create(logo, TweenInfo.new(0.2), {
+            TextColor3 = Color3.fromRGB(0, 200, 255)
+        }):Play()
+
+        tooltip.Visible = true
+    end)
+
+    mainButton.MouseLeave:Connect(function()
+        TweenService:Create(buttonStroke, TweenInfo.new(0.2), {
+            Color = Color3.fromRGB(65, 65, 80),
+            Thickness = 1.6
+        }):Play()
+
+        TweenService:Create(mainButton, TweenInfo.new(0.2), {
+            BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+        }):Play()
+
+        TweenService:Create(logo, TweenInfo.new(0.2), {
+            TextColor3 = Color3.fromRGB(255, 255, 255)
+        }):Play()
+
+        tooltip.Visible = false
+    end)
+
+    local isDragging = false
+    local dragStart = nil
+    local startPos = nil
+    local movedDistance = 0
+
+    mainButton.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            isDragging = true
+            dragStart = input.Position
+            startPos = mainButton.Position
+            movedDistance = 0
+
+            TweenService:Create(mainButton, TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+                Size = UDim2.new(0, 45, 0, 45)
+            }):Play()
+
+            local connChanged
+            local connEnded
+
+            connChanged = UserInputService.InputChanged:Connect(function(moveInput)
+                if (moveInput.UserInputType == Enum.UserInputType.MouseMovement or moveInput.UserInputType == Enum.UserInputType.Touch) and isDragging then
+                    local delta = moveInput.Position - dragStart
+                    movedDistance = (delta.X * delta.X + delta.Y * delta.Y)
+
+                    local newOffsetX = startPos.X.Offset + delta.X
+                    local newOffsetY = startPos.Y.Offset + delta.Y
+
+                    local camera = workspace.CurrentCamera
+                    local screenSize = camera and camera.ViewportSize or Vector2.new(1920, 1080)
+
+                    newOffsetX = math.clamp(newOffsetX, 5, math.max(10, screenSize.X - 55))
+                    newOffsetY = math.clamp(newOffsetY, 5, math.max(10, screenSize.Y - 55))
+
+                    mainButton.Position = UDim2.new(startPos.X.Scale, newOffsetX, startPos.Y.Scale, newOffsetY)
+                end
+            end)
+
+            connEnded = UserInputService.InputEnded:Connect(function(endInput)
+                if endInput.UserInputType == Enum.UserInputType.MouseButton1 or endInput.UserInputType == Enum.UserInputType.Touch then
+                    isDragging = false
+
+                    if connChanged then
+                        connChanged:Disconnect()
+                    end
+
+                    if connEnded then
+                        connEnded:Disconnect()
+                    end
+
+                    TweenService:Create(mainButton, TweenInfo.new(0.2, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+                        Size = UDim2.new(0, 50, 0, 50)
+                    }):Play()
+
+                    if movedDistance <= 16 then
+                        toggleMainGui()
+                    end
+                end
+            end)
+        end
+    end)
+
+    UserInputService.InputBegan:Connect(function(input, gameProcessed)
+        if gameProcessed then return end
+        if UserInputService:GetFocusedTextBox() then return end
+
+        if input.KeyCode == Enum.KeyCode.U then
+            toggleMainGui()
+        end
+    end)
+
+    return toggleScreenGui, mainButton
+end
+
+ToggleGui, ToggleMainButton = setupToggleGui()
+
+local function destroyToggleGui()
+    if ToggleGui then
+        pcall(function()
+            if ToggleMainButton and ToggleMainButton.Parent then
+                local tween = TweenService:Create(ToggleMainButton, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
+                    Size = UDim2.new(0, 0, 0, 0),
+                    BackgroundTransparency = 1
+                })
+
+                tween:Play()
+                tween.Completed:Wait()
+            end
+        end)
+
+        pcall(function()
+            ToggleGui:Destroy()
+        end)
+
+        ToggleGui = nil
+        ToggleMainButton = nil
+    end
+end
+
+if Fluent and typeof(Fluent.Destroy) == "function" then
+    local oldFluentDestroy = Fluent.Destroy
+
+    Fluent.Destroy = function(self, ...)
+        destroyToggleGui()
+        return oldFluentDestroy(self, ...)
+    end
+end
+
+if Window and typeof(Window.Destroy) == "function" then
+    local oldWindowDestroy = Window.Destroy
+
+    Window.Destroy = function(self, ...)
+        destroyToggleGui()
+        return oldWindowDestroy(self, ...)
+    end
+end
+
+if Fluent and Fluent.GUI then
+    pcall(function()
+        Fluent.GUI.Destroying:Connect(destroyToggleGui)
+
+        Fluent.GUI.AncestryChanged:Connect(function(_, parent)
+            if not parent then
+                destroyToggleGui()
+            end
+        end)
+    end)
+end
+
+if Window and Window.Root then
+    pcall(function()
+        Window.Root.Destroying:Connect(destroyToggleGui)
+
+        Window.Root.AncestryChanged:Connect(function(_, parent)
+            if not parent then
+                destroyToggleGui()
+            end
+        end)
+    end)
+end
+
+task.spawn(function()
+    while ToggleGui and ToggleGui.Parent do
+        if (Fluent and Fluent.Unloaded) or (not Fluent.GUI or not Fluent.GUI.Parent) or (Window and Window.Root and not Window.Root.Parent) then
+            destroyToggleGui()
+            break
+        end
+
+        task.wait(0.3)
+    end
+end)
